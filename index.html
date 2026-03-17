@@ -13,38 +13,43 @@ body {
     text-align: center;
     background: #f5f5f5;
     padding: 15px;
+    font-size: 18px;
 }
 
 .box {
     background: white;
-    padding: 15px;
-    margin: 10px auto;
-    border-radius: 10px;
-    max-width: 400px;
+    padding: 20px;
+    margin: 12px auto;
+    border-radius: 12px;
+    max-width: 420px;
 }
 
 .title {
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #444;
 }
 
 .big {
-    font-size: 26px;
-    font-weight: bold;
-    margin-bottom: 8px;
+    font-size: 34px;
+    font-weight: 900;
+    margin: 10px 0;
 }
 
 button {
-    margin: 3px;
-    padding: 6px 10px;
-    font-size: 14px;
+    margin: 4px;
+    padding: 10px 14px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    background: #ddd;
 }
 
 .remaining {
-    font-size: 20px;
-    color: green;
-    font-weight: bold;
+    font-size: 26px;
+    font-weight: 900;
+    color: #1b5e20;
     margin-top: 10px;
 }
 </style>
@@ -97,6 +102,8 @@ button {
         Остават: <span id="rem">19</span> rows
     </div>
 </div>
+
+<button onclick="hardReset()">🔄 Презареди / Изчисти бисквитки</button>
 
 <script>
 // ===== STATE =====
@@ -185,6 +192,40 @@ document.getElementById("total").addEventListener("input", e => {
     data.total = parseInt(e.target.value) || 0;
     render(); save();
 });
+
+// ===== Reset page cookies =====
+function hardReset() {
+    // 🧹 localStorage
+    localStorage.clear();
+
+    // 🍪 cookies
+    document.cookie.split(";").forEach(c => {
+        document.cookie = c
+            .replace(/^ +/, "")
+            .replace(/=.*/, "=;expires=" + new Date(0).toUTCString() + ";path=/");
+    });
+
+    // ⚙️ service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(regs => {
+            for (let reg of regs) {
+                reg.unregister();
+            }
+        });
+    }
+
+    // 💾 cache storage
+    if ('caches' in window) {
+        caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+        });
+    }
+
+    // 🔄 reload
+    setTimeout(() => {
+        location.reload(true);
+    }, 500);
+}
 
 // INIT
 render();
