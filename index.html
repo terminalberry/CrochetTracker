@@ -23,18 +23,29 @@ body {
     max-width: 400px;
 }
 
+.title {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.big {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
 button {
     margin: 3px;
     padding: 6px 10px;
     font-size: 14px;
 }
 
-.big { font-size: 26px; font-weight: bold; }
-
 .remaining {
-    font-size: 22px;
+    font-size: 20px;
     color: green;
     font-weight: bold;
+    margin-top: 10px;
 }
 </style>
 </head>
@@ -43,32 +54,48 @@ button {
 
 <h2>🧶 Crochet Tracker</h2>
 
+<!-- ТАЙМЕР -->
 <div class="box">
+    <div class="title">Таймер</div>
     <div class="big" id="time">00:00:00</div>
+
     <button onclick="start()">Старт</button>
     <button onclick="pause()">Пауза</button>
     <button onclick="stop()">Стоп</button>
-    <p>Последно: <span id="lastTime">--</span></p>
+
+    <div class="title">Последно време</div>
+    <div id="lastTime">--</div>
 </div>
 
+<!-- ШЕВОВЕ -->
 <div class="box">
+    <div class="title">Брой шевове</div>
     <div class="big" id="stitches">0</div>
+
     <button onclick="st(-1)">-1</button>
     <button onclick="st(1)">+1</button>
     <button onclick="st(5)">+5</button>
     <button onclick="st(10)">+10</button>
-    <button onclick="resetSt()">0</button>
+    <button onclick="resetSt()">Занули</button>
 </div>
 
+<!-- РЕДОВЕ -->
 <div class="box">
+    <div class="title">Текущ ред (row)</div>
     <div class="big" id="rows">0</div>
+
     <button onclick="rw(-1)">-1</button>
     <button onclick="rw(1)">+1</button>
-    <button onclick="resetRw()">0</button>
+    <button onclick="resetRw()">Занули</button>
 
     <br><br>
+
+    <div class="title">Общо редове</div>
     <input id="total" type="number" value="19">
-    <div class="remaining">Остават: <span id="rem">19</span></div>
+
+    <div class="remaining">
+        Остават: <span id="rem">19</span> rows
+    </div>
 </div>
 
 <script>
@@ -83,7 +110,7 @@ let data = JSON.parse(localStorage.getItem("crochet")) || {
 
 let timer = null;
 
-// ===== SAVE (instant, no lag) =====
+// ===== SAVE =====
 function save() {
     localStorage.setItem("crochet", JSON.stringify(data));
 }
@@ -159,10 +186,10 @@ document.getElementById("total").addEventListener("input", e => {
     render(); save();
 });
 
-// ===== INIT =====
+// INIT
 render();
 
-// ===== SERVICE WORKER =====
+// SERVICE WORKER
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
 }
