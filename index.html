@@ -2,200 +2,170 @@
 <html lang="bg">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Crochet Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+
 <style>
-    body {
-        font-family: Arial;
-        text-align: center;
-        background: #f5f5f5;
-        padding: 20px;
-    }
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f5f5f5;
+    padding: 15px;
+}
 
-    .box {
-        background: white;
-        padding: 20px;
-        margin: 15px auto;
-        border-radius: 10px;
-        max-width: 400px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
+.box {
+    background: white;
+    padding: 15px;
+    margin: 10px auto;
+    border-radius: 10px;
+    max-width: 400px;
+}
 
-    button {
-        margin: 3px;
-        padding: 6px 10px;
-        font-size: 14px;
-        border-radius: 6px;
-        border: none;
-        background: #ddd;
-        cursor: pointer;
-    }
+button {
+    margin: 3px;
+    padding: 6px 10px;
+    font-size: 14px;
+}
 
-    button:hover {
-        background: #ccc;
-    }
+.big { font-size: 26px; font-weight: bold; }
 
-    input {
-        padding: 6px;
-        font-size: 18px;
-        width: 100px;
-        text-align: center;
-        margin-top: 5px;
-    }
-
-    .big-number {
-        font-size: 28px;
-        font-weight: bold;
-    }
-
-    .remaining {
-        margin-top: 10px;
-        font-size: 22px;
-        font-weight: bold;
-        color: #2e7d32;
-    }
-
-    .row-layout {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .row-box {
-        background: #f0f0f0;
-        padding: 10px;
-        border-radius: 8px;
-    }
+.remaining {
+    font-size: 22px;
+    color: green;
+    font-weight: bold;
+}
 </style>
 </head>
+
 <body>
 
-<h1>🧶 Crochet Tracker</h1>
+<h2>🧶 Crochet Tracker</h2>
 
 <div class="box">
-    <h2>⏱ Таймер</h2>
-    <h3 id="time">00:00:00</h3>
-
-    <button onclick="startTimer()">Старт</button>
-    <button onclick="pauseTimer()">Пауза</button>
-    <button onclick="stopTimer()">Стоп</button>
-
-    <p>Последно време: <strong id="lastTime">--:--:--</strong></p>
+    <div class="big" id="time">00:00:00</div>
+    <button onclick="start()">Старт</button>
+    <button onclick="pause()">Пауза</button>
+    <button onclick="stop()">Стоп</button>
+    <p>Последно: <span id="lastTime">--</span></p>
 </div>
 
 <div class="box">
-    <h2>🔢 Шевове</h2>
-    <div class="big-number" id="stitches">0</div>
-
-    <button onclick="addStitch(-5)">-5</button>
-    <button onclick="addStitch(-1)">-1</button>
-    <button onclick="addStitch(1)">+1</button>
-    <button onclick="addStitch(5)">+5</button>
-    <button onclick="addStitch(10)">+10</button>
-    <button onclick="addStitch(20)">+20</button>
-    <button onclick="addStitch(50)">+50</button>
-    <br>
-    <button onclick="resetStitches()">Занули</button>
+    <div class="big" id="stitches">0</div>
+    <button onclick="st(-1)">-1</button>
+    <button onclick="st(1)">+1</button>
+    <button onclick="st(5)">+5</button>
+    <button onclick="st(10)">+10</button>
+    <button onclick="resetSt()">0</button>
 </div>
 
 <div class="box">
-    <h2>📏 Редове</h2>
+    <div class="big" id="rows">0</div>
+    <button onclick="rw(-1)">-1</button>
+    <button onclick="rw(1)">+1</button>
+    <button onclick="resetRw()">0</button>
 
-    <div class="big-number" id="rows">0</div>
-
-    <button onclick="addRow(-1)">-1</button>
-    <button onclick="addRow(1)">+1</button>
-    <br>
-    <button onclick="resetRows()">Занули</button>
-
-    <div class="row-layout" style="margin-top:15px;">
-        <div class="row-box">
-            <div>Общо редове</div>
-            <input type="number" id="totalRows" value="19" oninput="updateRemaining()">
-        </div>
-    </div>
-
-    <div class="remaining">
-        Остават ти: <span id="remaining">19</span> rows
-    </div>
+    <br><br>
+    <input id="total" type="number" value="19">
+    <div class="remaining">Остават: <span id="rem">19</span></div>
 </div>
 
 <script>
-let seconds = 0;
+// ===== STATE =====
+let data = JSON.parse(localStorage.getItem("crochet")) || {
+    seconds: 0,
+    stitches: 0,
+    rows: 0,
+    total: 19,
+    lastTime: "--"
+};
+
 let timer = null;
 
-function updateTime() {
-    seconds++;
-    let h = Math.floor(seconds / 3600);
-    let m = Math.floor((seconds % 3600) / 60);
-    let s = seconds % 60;
+// ===== SAVE (instant, no lag) =====
+function save() {
+    localStorage.setItem("crochet", JSON.stringify(data));
+}
+
+// ===== RENDER =====
+function render() {
+    let s = data.seconds;
+    let h = Math.floor(s/3600);
+    let m = Math.floor((s%3600)/60);
+    let sec = s%60;
 
     document.getElementById("time").innerText =
-        String(h).padStart(2, '0') + ":" +
-        String(m).padStart(2, '0') + ":" +
-        String(s).padStart(2, '0');
+        `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+
+    document.getElementById("stitches").innerText = data.stitches;
+    document.getElementById("rows").innerText = data.rows;
+    document.getElementById("lastTime").innerText = data.lastTime;
+    document.getElementById("total").value = data.total;
+
+    let rem = data.total - data.rows;
+    if (rem < 0) rem = 0;
+    document.getElementById("rem").innerText = rem;
 }
 
-function startTimer() {
-    if (!timer) timer = setInterval(updateTime, 1000);
+// ===== TIMER =====
+function tick() {
+    data.seconds++;
+    render();
+    save();
 }
 
-function pauseTimer() {
+function start() {
+    if (!timer) timer = setInterval(tick, 1000);
+}
+
+function pause() {
     clearInterval(timer);
     timer = null;
 }
 
-function stopTimer() {
-    clearInterval(timer);
-    timer = null;
-
-    document.getElementById("lastTime").innerText =
-        document.getElementById("time").innerText;
-
-    seconds = 0;
-    document.getElementById("time").innerText = "00:00:00";
+function stop() {
+    pause();
+    data.lastTime = document.getElementById("time").innerText;
+    data.seconds = 0;
+    render();
+    save();
 }
 
-// Шевове
-let stitches = 0;
-
-function addStitch(val) {
-    stitches += val;
-    if (stitches < 0) stitches = 0;
-    document.getElementById("stitches").innerText = stitches;
+// ===== STITCHES =====
+function st(v) {
+    data.stitches += v;
+    if (data.stitches < 0) data.stitches = 0;
+    render(); save();
+}
+function resetSt() {
+    data.stitches = 0;
+    render(); save();
 }
 
-function resetStitches() {
-    stitches = 0;
-    document.getElementById("stitches").innerText = stitches;
+// ===== ROWS =====
+function rw(v) {
+    data.rows += v;
+    if (data.rows < 0) data.rows = 0;
+    render(); save();
+}
+function resetRw() {
+    data.rows = 0;
+    render(); save();
 }
 
-// Редове
-let rows = 0;
+document.getElementById("total").addEventListener("input", e => {
+    data.total = parseInt(e.target.value) || 0;
+    render(); save();
+});
 
-function addRow(val) {
-    rows += val;
-    if (rows < 0) rows = 0;
-    document.getElementById("rows").innerText = rows;
-    updateRemaining();
+// ===== INIT =====
+render();
+
+// ===== SERVICE WORKER =====
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
 }
-
-function resetRows() {
-    rows = 0;
-    document.getElementById("rows").innerText = rows;
-    updateRemaining();
-}
-
-function updateRemaining() {
-    let total = parseInt(document.getElementById("totalRows").value) || 0;
-    let remaining = total - rows;
-    if (remaining < 0) remaining = 0;
-
-    document.getElementById("remaining").innerText = remaining;
-}
-
-// initial update
-updateRemaining();
 </script>
 
 </body>
