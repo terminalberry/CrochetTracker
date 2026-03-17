@@ -1,0 +1,9 @@
+{
+  "name": "Crochet Tracker",
+  "short_name": "Crochet",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#ffffff",
+  "icons": []
+}
