@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<title>Crochet Tracker</title>
+<style>
+    body {
+        font-family: Arial;
+        text-align: center;
+        background: #f5f5f5;
+        padding: 20px;
+    }
+
+    .box {
+        background: white;
+        padding: 20px;
+        margin: 15px auto;
+        border-radius: 10px;
+        max-width: 400px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    button {
+        margin: 3px;
+        padding: 6px 10px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: none;
+        background: #ddd;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #ccc;
+    }
+
+    input {
+        padding: 6px;
+        font-size: 18px;
+        width: 100px;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    .big-number {
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .remaining {
+        margin-top: 10px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #2e7d32;
+    }
+
+    .row-layout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .row-box {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 8px;
+    }
+</style>
+</head>
+<body>
+
+<h1>🧶 Crochet Tracker</h1>
+
+<div class="box">
+    <h2>⏱ Таймер</h2>
+    <h3 id="time">00:00:00</h3>
+
+    <button onclick="startTimer()">Старт</button>
+    <button onclick="pauseTimer()">Пауза</button>
+    <button onclick="stopTimer()">Стоп</button>
+
+    <p>Последно време: <strong id="lastTime">--:--:--</strong></p>
+</div>
+
+<div class="box">
+    <h2>🔢 Шевове</h2>
+    <div class="big-number" id="stitches">0</div>
+
+    <button onclick="addStitch(-5)">-5</button>
+    <button onclick="addStitch(-1)">-1</button>
+    <button onclick="addStitch(1)">+1</button>
+    <button onclick="addStitch(5)">+5</button>
+    <button onclick="addStitch(10)">+10</button>
+    <button onclick="addStitch(20)">+20</button>
+    <button onclick="addStitch(50)">+50</button>
+    <br>
+    <button onclick="resetStitches()">Занули</button>
+</div>
+
+<div class="box">
+    <h2>📏 Редове</h2>
+
+    <div class="big-number" id="rows">0</div>
+
+    <button onclick="addRow(-1)">-1</button>
+    <button onclick="addRow(1)">+1</button>
+    <br>
+    <button onclick="resetRows()">Занули</button>
+
+    <div class="row-layout" style="margin-top:15px;">
+        <div class="row-box">
+            <div>Общо редове</div>
+            <input type="number" id="totalRows" value="19" oninput="updateRemaining()">
+        </div>
+    </div>
+
+    <div class="remaining">
+        Остават ти: <span id="remaining">19</span> rows
+    </div>
+</div>
+
+<script>
+let seconds = 0;
+let timer = null;
+
+function updateTime() {
+    seconds++;
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+
+    document.getElementById("time").innerText =
+        String(h).padStart(2, '0') + ":" +
+        String(m).padStart(2, '0') + ":" +
+        String(s).padStart(2, '0');
+}
+
+function startTimer() {
+    if (!timer) timer = setInterval(updateTime, 1000);
+}
+
+function pauseTimer() {
+    clearInterval(timer);
+    timer = null;
+}
+
+function stopTimer() {
+    clearInterval(timer);
+    timer = null;
+
+    document.getElementById("lastTime").innerText =
+        document.getElementById("time").innerText;
+
+    seconds = 0;
+    document.getElementById("time").innerText = "00:00:00";
+}
+
+// Шевове
+let stitches = 0;
+
+function addStitch(val) {
+    stitches += val;
+    if (stitches < 0) stitches = 0;
+    document.getElementById("stitches").innerText = stitches;
+}
+
+function resetStitches() {
+    stitches = 0;
+    document.getElementById("stitches").innerText = stitches;
+}
+
+// Редове
+let rows = 0;
+
+function addRow(val) {
+    rows += val;
+    if (rows < 0) rows = 0;
+    document.getElementById("rows").innerText = rows;
+    updateRemaining();
+}
+
+function resetRows() {
+    rows = 0;
+    document.getElementById("rows").innerText = rows;
+    updateRemaining();
+}
+
+function updateRemaining() {
+    let total = parseInt(document.getElementById("totalRows").value) || 0;
+    let remaining = total - rows;
+    if (remaining < 0) remaining = 0;
+
+    document.getElementById("remaining").innerText = remaining;
+}
+
+// initial update
+updateRemaining();
+</script>
+
+</body>
+</html>
